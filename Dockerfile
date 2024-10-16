@@ -22,10 +22,20 @@ COPY . /var/www/html
 WORKDIR /var/www/html
 
 # Instalando as dependências do Laravel
-RUN composer install
+RUN composer install --optimize-autoloader --no-dev
 
 # Ajustando permissões para o diretório de cache e logs
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Definindo variáveis de ambiente de produção
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+
+# Otimizando a aplicação para produção
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache \
+    && php artisan migrate --force
 
 # Expondo a porta 8000, usada pelo php artisan serve
 EXPOSE 8000
