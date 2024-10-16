@@ -31,6 +31,8 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 
+RUN php artisan key:generate
+
 # Otimizando a aplicação para produção
 RUN php artisan migrate --force
 
