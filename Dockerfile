@@ -28,8 +28,9 @@ COPY .env.example .env
 # Instalar dependências da aplicação
 RUN composer install --no-dev --optimize-autoloader
 
-# Ajustar permissões
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database
+# Criar os diretórios necessários e ajustar permissões
+RUN mkdir -p /var/www/storage /var/www/bootstrap/cache /var/www/database \
+    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database
 
 # Definindo variáveis de ambiente de produção
 ENV APP_ENV=production
@@ -45,4 +46,3 @@ EXPOSE 9000
 
 # Iniciar o PHP-FPM
 CMD ["php-fpm", "--nodaemonize"]
-
