@@ -1,5 +1,5 @@
-# Usando a imagem base do PHP com FastCGI Process Manager (FPM)
-FROM php:8.3-fpm
+# Usando a imagem base do PHP
+FROM php:8.3-cli
 
 # Atualizando os pacotes e instalando as extensões necessárias
 RUN apt-get update && apt-get install -y \
@@ -21,11 +21,14 @@ COPY . /var/www/html
 # Definindo o diretório de trabalho
 WORKDIR /var/www/html
 
+# Instalando as dependências do Laravel
+RUN composer install
+
 # Ajustando permissões para o diretório de cache e logs
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expondo a porta 9000, que é a porta padrão para PHP-FPM
-EXPOSE 9000
+# Expondo a porta 8000, usada pelo php artisan serve
+EXPOSE 8000
 
-# Definindo o comando de inicialização para PHP-FPM
-CMD ["php-fpm"]
+# Definindo o comando para rodar o servidor embutido do Laravel
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
