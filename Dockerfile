@@ -1,33 +1,35 @@
-# Usando a imagem base do PHP
-FROM php:8.3-cli
+# Usar uma imagem base do PHP
+FROM php:8.2-fpm
 
-# Atualizando os pacotes e instalando as extensões necessárias
+# Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     libzip-dev \
-    zip \
+    sqlite3 \
+    libsqlite3-dev \
     unzip \
     git \
-    libsqlite3-dev \
-    libonig-dev \
-    libpng-dev \
-    && docker-php-ext-install zip pdo pdo_mysql pdo_sqlite mysqli
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd zip pdo pdo_sqlite
 
-# Instalando o Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Instalar o Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copiando o código da aplicação Laravel para dentro do contêiner
-COPY . /var/www/html
-
-# Definindo o diretório de trabalho
+# Definir o diretório de trabalho
 WORKDIR /var/www/html
+
+# Copiar os arquivos da aplicação para o contêiner
+COPY . .
 
 COPY .env.example .env
 
-# Instalando as dependências do Laravel
-RUN composer install --optimize-autoloader --no-dev
+# Instalar dependências da aplicação
+RUN composer install --no-dev --optimize-autoloader
 
-# Ajustando permissões para o diretório de cache e logs
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Ajustar permissões
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database
 
 # Definindo variáveis de ambiente de produção
 ENV APP_ENV=production
@@ -38,8 +40,9 @@ RUN php artisan key:generate
 # Otimizando a aplicação para produção
 RUN php artisan migrate --force
 
-# Expondo a porta 8000, usada pelo php artisan serve
-EXPOSE 8000
+# Expor a porta que o PHP-FPM está escutando
+EXPOSE 9000
 
-# Definindo o comando para rodar o servidor embutido do Laravel
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Iniciar o PHP-FPM
+CMD ["php-fpm", "--nodaemonize"]
+
