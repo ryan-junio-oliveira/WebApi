@@ -4,6 +4,7 @@ FROM php:8.2-fpm
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
     nginx \
+    supervisor \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -36,6 +37,9 @@ RUN mkdir -p /var/www/storage /var/www/bootstrap/cache /var/www/database \
 # Definir configuração do Nginx
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 
+# Copiar configuração do supervisord
+COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # Definindo variáveis de ambiente de produção
 ENV APP_ENV=production
 ENV APP_DEBUG=false
@@ -48,5 +52,5 @@ RUN php artisan migrate --force
 # Expor a porta HTTP do Nginx
 EXPOSE 80
 
-# Iniciar o Nginx e PHP-FPM
-CMD service nginx start && php-fpm --nodaemonize
+# Iniciar o supervisord
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
