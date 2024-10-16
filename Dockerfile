@@ -21,6 +21,8 @@ COPY . /var/www/html
 # Definindo o diretório de trabalho
 WORKDIR /var/www/html
 
+COPY .env.example .env
+
 # Instalando as dependências do Laravel
 RUN composer install --optimize-autoloader --no-dev
 
